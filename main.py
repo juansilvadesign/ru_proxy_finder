@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 """
 RU Proxy Finder - скрипт для поиска и проверки российских прокси для доступа к VATS.
@@ -26,15 +28,16 @@ async def find_proxies(check_vats=True, max_concurrent=20, timeout=5):
     """Полный процесс поиска и проверки прокси."""
     finder = RussianProxyFinder()
     await finder.initialize()
-    
+
     try:
         # Собираем прокси из разных источников
         await finder.get_proxies_from_api()
-        await finder.check_country()
-        
+        # Проверяем принадлежность стран (замена устаревшего check_country)
+        await finder.verify_russian_proxies()
+
         # Сохраняем найденные российские прокси
-        finder.save_russian_proxies()
-        
+        await finder.save_proxies()
+
         # Если нужно проверить доступность VATS
         if check_vats:
             working_proxies = await finder.check_vats_access()
@@ -43,7 +46,7 @@ async def find_proxies(check_vats=True, max_concurrent=20, timeout=5):
                 return working_proxies
             else:
                 console.print("[bold red]Не найдено прокси, которые могут открыть VATS с формой входа!")
-        
+
         return finder.russian_proxies
     finally:
         await finder.close()
@@ -54,14 +57,14 @@ def show_working_proxies(proxies):
     if not proxies:
         console.print("[bold red]Нет рабочих прокси для отображения.")
         return
-    
+
     table = Table(title="Рабочие прокси для доступа к VATS")
     table.add_column("№", style="cyan")
     table.add_column("Прокси", style="green")
-    
+
     for idx, proxy in enumerate(proxies, 1):
         table.add_row(str(idx), proxy)
-    
+
     console.print(table)
     console.print("\nИспользуйте эти прокси для доступа к VATS через браузер.")
 
@@ -73,9 +76,9 @@ async def main():
     parser.add_argument("-c", "--concurrent", type=int, default=20, help="Количество одновременных запросов")
     parser.add_argument("-t", "--timeout", type=int, default=5, help="Таймаут соединения в секундах")
     args = parser.parse_args()
-    
+
     console.print("\n🔍 Поиск российских прокси для доступа к VATS...\n")
-    
+
     try:
         await find_proxies(check_vats=not args.novats, max_concurrent=args.concurrent, timeout=args.timeout)
     except KeyboardInterrupt:

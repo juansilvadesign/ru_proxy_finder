@@ -30,7 +30,7 @@ if not exist ".env" (
 
 rem Activate virtual environment
 echo Activating virtual environment...
-call .env\Scripts\activate.bat
+call .env\Scripts\activate
 if errorlevel 1 (
     echo Error: Failed to activate virtual environment.
     pause
